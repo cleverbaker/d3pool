@@ -1,0 +1,29 @@
+<body>
+<form id="startpool">
+    <label>Add your .csv source</label>
+    <input type="file" id="csvsrc" accept=".csv" />
+    <br />
+    <input type="submit" value="Complete" />
+</form>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script>
+    const startpool = document.getElementById("startpool");
+    const csvsrc = document.getElementById("csvsrc");
+
+    startpool.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const input = csvsrc.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+            const text = e.target.result;
+            const data = d3.csvsrc(text);
+
+            document.write(JSON.stringify(data));
+            console.log(data);
+        };
+
+        reader.readAsText(input);
+    });
+</script>
+</body>
