@@ -5,22 +5,103 @@
     <br />
     <input type="submit" value="Complete" />
 </form>
+<div id="content">
+    <svg width="750" height="500">
+        <g transform="translate(100, 250)"></g>
+    </svg>
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 <script>
-    const startpool = document.getElementById("startpool");
-    const csvsrc = document.getElementById("csvsrc");
+    let startpool = document.getElementById("startpool");
+    let csvsrc = document.getElementById("csvsrc");
+
+
+    const width = 750, height = 500;
+
+    const colorScale = ['orange', 'lightblue', '#B19CD9'];
+    const yCenter = [50, 50, 50];
+    const xCenter = [10, 10, 10];
+
+    const numNodes = 100;
+
+
+
+
+    let nodes = d3.range(numNodes).map(function(d, i) {
+        const r = 20;
+        console.log(r);
+        let c = 0;
+        //if (data[i]["Amount"] > 0) c=1;
+        return {
+            radius: r,
+            category: c
+        }
+    });
+
+
 
     startpool.addEventListener("submit", function (e) {
         e.preventDefault();
         const input = csvsrc.files[0];
         const reader = new FileReader();
 
+
+
         reader.onload = function (e) {
             const text = e.target.result;
-            const data = d3.csvsrc(text);
+            const data = d3.csvParse(text);
 
-            document.write(JSON.stringify(data));
-            console.log(data);
+            //console.log(data);
+
+            //document.write(JSON.stringify(data));
+
+          /*  let nodes = d3.range(numNodes).map(function(d, i) {
+                return {
+                    radius: Math.random() * 42, // Math.abs(d["Amount"]), //Math.random() * 25,
+                    category: 0
+                }
+            });
+
+*/
+
+
+             nodes = d3.range(numNodes).map(function(d, i) {
+                const r = Number(Math.abs(data[i]["Amount"])/10);
+                console.log(r);
+                let c = 0;
+                if (data[i]["Amount"] > 0) c=2;
+                return {
+                    radius: r,
+                    category: c
+                }
+            });
+            function ticked() {
+                let u = d3.select('svg g')
+                    .selectAll('circle')
+                    .data(nodes)
+                    .join('circle')
+                    .attr('r', function(d) {
+                        return d.radius;
+                    })
+                    .style('fill', function(d) {
+                        return colorScale[d.category];
+                    })
+                    .attr('cy', function(d) {
+                        return d.y;
+                    });
+            }
+
+            let vizualization = d3.forceSimulation(nodes)
+                .force('charge', d3.forceManyBody().strength(5))
+                .force('y', d3.forceY().y(function(d) {
+                    return yCenter[d.category];
+                }))
+                .force('collision', d3.forceCollide().radius(function(d) {
+                    return d.radius;
+                }))
+                .on('tick', ticked);
+
+
+
         };
 
         reader.readAsText(input);
